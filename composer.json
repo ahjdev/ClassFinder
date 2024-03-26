@@ -1,0 +1,37 @@
+{
+    "name": "ahjdev/class-finder",
+    "description": "An async php telegram bot library for create super fast telegram bots!",
+    "keywords": [
+        "php",
+        "class",
+        "node",
+        "finder",
+        "class finder",
+        "php finder"
+    ],
+    "minimum-stability": "beta",
+    "license": "GPL-3.0-only",
+    "authors": [
+        {
+            "name": "AmirHossein Jafari",
+            "email": "amirhosseinjafari8228@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "AhjDev\\ClassFinder\\": "src/"
+        }
+    },
+    "require": {
+        "php-64bit": ">=8.1"
+    },
+    "require-dev": {
+        "amphp/php-cs-fixer-config": "^2.0"
+    },
+    "scripts": {
+        "build": [
+            "@cs-fix"
+        ],
+        "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php -d pcre.jit=0 vendor/bin/php-cs-fixer fix -v"
+    }
+}

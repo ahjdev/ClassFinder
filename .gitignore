@@ -1,0 +1,95 @@
+JSON.sh
+*.raw
+
+# JetBrains IDE
+.idea/
+*.iml
+
+# Eclipse
+.buildpath
+.project
+.settings
+
+# VI
+*.swp
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+lib64/
+sdist/
+var/
+.installed.cfg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# emacs auto-saving files
+\#*#
+.#*#
+
+# composer
+vendor
+composer.lock
+*.phar
+phar7
+phar5
+.phpunit.result.cache
+
+# Vscode
+.vscode/*
+.vscode
+.php_cs.cache
+.phpdoc_cache
+*bak
+.env
+
+app_test.json
+app.json
+config.json
+/Dockerfile
+/docker-compose.yml
+/Caddyfile
+/changelog
+
+# Project
+test.php
