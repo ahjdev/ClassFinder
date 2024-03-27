@@ -15,10 +15,10 @@
 namespace AhjDev\ClassFinder;
 
 use Closure;
-use ReflectionEnum;
-use ReflectionClass;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
+use ReflectionClass;
+use ReflectionEnum;
 
 /**
  * @mixin ClassFinder
@@ -37,21 +37,23 @@ final class ClassFinder
      */
     public function __construct(?string $path = null)
     {
-        if (!interface_exists('Reflector'))
+        if (!\interface_exists('Reflector')) {
             throw new Exception('Could not find Reflector interface');
-        $path           = rtrim($path ?? __DIR__ . '/..', '/');
+        }
+        $path           = \rtrim($path ?? __DIR__ . '/..', '/');
         $vendor         = $path   . '/vendor';
         $autoload       = $vendor . '/autoload.php';
         $autoload_psr4  = $vendor . '/composer/autoload_psr4.php';
         $autoload_files = $vendor . '/composer/autoload_files.php';
         require_once $autoload;
-        if (file_exists($autoload_files))
-            $this->files  = array_map('realpath', array_values(require_once $autoload_files));
-        $this->namespaces = require_once ($autoload_psr4);
+        if (\file_exists($autoload_files)) {
+            $this->files  = \array_map('realpath', \array_values(require_once $autoload_files));
+        }
+        $this->namespaces = require_once($autoload_psr4);
     }
 
     /**
-     * Get classes from namespace
+     * Get classes from namespace.
      *
      * @param string|null           $namespace Namespace
      * @param int                   $options   Whether which classes should return
@@ -62,44 +64,34 @@ final class ClassFinder
         $cb ??= fn (ReflectionClass $v) => true;
         $uncheck   = empty($namespace);
         $classes = [];
-        $namespace .= str_ends_with($namespace ?? '', '\\') ? '' : '\\';
+        $namespace .= \str_ends_with($namespace ?? '', '\\') ? '' : '\\';
         foreach ($this->namespaces as $k => $v) {
-            if ($uncheck || str_starts_with($namespace, $k) || str_starts_with($k, $namespace)) {
-                $main    = implode('', $v);
-                $path    = $main . '/' . substr($namespace, strlen($k));
-                $name    = rtrim($k, '\\');
+            if ($uncheck || \str_starts_with($namespace, $k) || \str_starts_with($k, $namespace)) {
+                $main    = \implode('', $v);
+                $path    = $main . '/' . \substr($namespace, \strlen($k));
+                $name    = \rtrim($k, '\\');
                 $classes += $this->getClassesInternal($path, $main, $name, $options, $cb);
             }
         }
-        return array_values($classes);
+        return \array_values($classes);
     }
 
     /**
-     * Filter the class
+     * Filter the class.
      *
      * @param class-string     $class
-     * @param int              $options
-     * @param callable|Closure $cb
      */
     private function filterClass(string $class, int $options, callable|Closure $cb): ReflectionClass|false
     {
-        if (enum_exists($class) && ($options & FindType::ENUM))
-        {
+        if (\enum_exists($class) && ($options & FindType::ENUM)) {
             $refClass = new ReflectionEnum($class);
             return $cb($refClass) ? $refClass : false;
-        }
-
-        elseif (trait_exists($class) && ($options & FindType::TRAIT) || interface_exists($class) && ($options & FindType::INTERFACE))
-        {
+        } elseif (\trait_exists($class) && ($options & FindType::TRAIT) || \interface_exists($class) && ($options & FindType::INTERFACE)) {
             $refClass = new ReflectionClass($class);
             return $cb($refClass) ? $refClass : false;
-        }
-
-        elseif (class_exists($class) && ($options & FindType::CLASSES))
-        {
+        } elseif (\class_exists($class) && ($options & FindType::CLASSES)) {
             $refClass = new ReflectionClass($class);
-            return match (true)
-            {
+            return match (true) {
                 $refClass->isEnum()     => ($options & FindType::ENUM)         && $cb($refClass) ? $refClass : false,
                 $refClass->isFinal()    => ($options & FindType::FINAL)        && $cb($refClass) ? $refClass : false,
                 $refClass->isAbstract() => ($options & FindType::ABSTRACT)     && $cb($refClass) ? $refClass : false,
@@ -112,19 +104,19 @@ final class ClassFinder
     private function getClassesInternal(RecursiveDirectoryIterator|string $path, string $mainpath, string $namespace, int $options, callable|Closure $cb): array
     {
         $classes = [];
-        if (is_string($path)) {
-            $path = realpath($path);
+        if (\is_string($path)) {
+            $path = \realpath($path);
             $path = $path ? new RecursiveDirectoryIterator($path, self::FileSystemFlags) : [];
         }
-    
+
         foreach ($path as $k => $v) {
-            if ($v->isDir())
+            if ($v->isDir()) {
                 $classes += $this->getClassesInternal($v->getChildren(), $mainpath, $namespace, $options, $cb);
-    
-            elseif ($v->isFile() && str_ends_with($v->getRealPath(), '.php')) {
+            } elseif ($v->isFile() && \str_ends_with($v->getRealPath(), '.php')) {
                 $class = $this->createClassName($v, $mainpath, $namespace);
-                if ($this->filterClass($class, $options, $cb) !== false)
+                if ($this->filterClass($class, $options, $cb) !== false) {
                     $classes[$k] = $class;
+                }
             }
         }
         return $classes;
@@ -132,10 +124,11 @@ final class ClassFinder
 
     private function createClassName(RecursiveDirectoryIterator $file, string $main, string $namespace): string
     {
-        if (in_array($file->getRealPath(), $this->files))
+        if (\in_array($file->getRealPath(), $this->files)) {
             return '';
-        $namespace .= substr($file->getPath(), strlen($main));
+        }
+        $namespace .= \substr($file->getPath(), \strlen($main));
         $namespace .= '\\' . $file->getBasename('.php');
-        return str_replace('/', '\\', $namespace);
+        return \str_replace('/', '\\', $namespace);
     }
 }

@@ -32,6 +32,6 @@
         "build": [
             "@cs-fix"
         ],
-        "cs-fix": "PHP_CS_FIXER_IGNORE_ENV=1 php -d pcre.jit=0 vendor/bin/php-cs-fixer fix -v"
+        "cs-fix": "php -d pcre.jit=0 vendor/bin/php-cs-fixer --config=.php-cs-fixer.dist.php fix -v --diff --dry-run"
     }
 }

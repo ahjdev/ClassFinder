@@ -18,20 +18,20 @@ use ReflectionClass;
 
 trait EasyFinder
 {
-    
+
     /**
-     * Whether a class is readonly
+     * Whether a class is readonly.
      *
      * @param string|null $namespace Namespace
      * @param int         $options   Whether which classes should return
      */
     public function isReadonly(?string $namespace = null, int $options = FindType::ALL): array
     {
-        return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => $v->isReadOnly());
+        return $this->getClasses($namespace, $options, fn (ReflectionClass $v) => $v->isReadOnly());
     }
 
     /**
-     * Whether class use this trait
+     * Whether class use this trait.
      *
      * @param class-string $class     Class name
      * @param string|null  $namespace Namespace
@@ -39,11 +39,11 @@ trait EasyFinder
      */
     public function hasTraitClass(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
-        return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => in_array($class, $v->getTraitNames()));
+        return $this->getClasses($namespace, $options, fn (ReflectionClass $v) => \in_array($class, $v->getTraitNames()));
     }
 
     /**
-     * Whether class implements an interface
+     * Whether class implements an interface.
      *
      * @param class-string $class     Class name
      * @param string|null  $namespace Namespace
@@ -51,11 +51,11 @@ trait EasyFinder
      */
     public function implementsClass(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
-        return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => $v->implementsInterface($class));
+        return $this->getClasses($namespace, $options, fn (ReflectionClass $v) => $v->implementsInterface($class));
     }
 
     /**
-     * Whether class is subclass of this class
+     * Whether class is subclass of this class.
      *
      * @param class-string $class     Class name
      * @param string|null  $namespace Namespace
@@ -63,11 +63,11 @@ trait EasyFinder
      */
     public function isSubClassOf(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
-        return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => $v->isSubclassOf($class));
+        return $this->getClasses($namespace, $options, fn (ReflectionClass $v) => $v->isSubclassOf($class));
     }
 
     /**
-     * Whether class is of this class or has this class as one of its parents
+     * Whether class is of this class or has this class as one of its parents.
      *
      * @param class-string $class     Class name
      * @param string|null  $namespace Namespace
@@ -75,11 +75,11 @@ trait EasyFinder
      */
     public function isAOf(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
-        return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => is_a($v->getName(), $class, true));
+        return $this->getClasses($namespace, $options, fn (ReflectionClass $v) => \is_a($v->getName(), $class, true));
     }
 
     /**
-     * Returns just interface classes
+     * Returns just interface classes.
      *
      * @param string $namespace Namespace
      */
@@ -89,7 +89,7 @@ trait EasyFinder
     }
 
     /**
-     * Returns just enum classes
+     * Returns just enum classes.
      *
      * @param string $namespace Namespace
      */
@@ -99,7 +99,7 @@ trait EasyFinder
     }
 
     /**
-     * Returns just trait classes
+     * Returns just trait classes.
      *
      * @param string $namespace Namespace
      */
@@ -109,7 +109,7 @@ trait EasyFinder
     }
 
     /**
-     * Returns just abstract classes
+     * Returns just abstract classes.
      *
      * @param string $namespace Namespace
      */
@@ -119,7 +119,7 @@ trait EasyFinder
     }
 
     /**
-     * Returns just final classes
+     * Returns just final classes.
      *
      * @param string $namespace Namespace
      */
