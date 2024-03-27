@@ -18,51 +18,111 @@ use ReflectionClass;
 
 trait EasyFinder
 {
-    public function isReadonly(?string $namespace = null, $options = FindType::ALL)
+    
+    /**
+     * Whether a class is readonly
+     *
+     * @param string|null $namespace Namespace
+     * @param int         $options   Whether which classes should return
+     */
+    public function isReadonly(?string $namespace = null, int $options = FindType::ALL): array
     {
         return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => $v->isReadOnly());
     }
 
-    public function hasTraitClass(string $class, ?string $namespace = null, $options = FindType::ALL)
+    /**
+     * Whether class use this trait
+     *
+     * @param class-string $class     Class name
+     * @param string|null  $namespace Namespace
+     * @param int          $options   Whether which classes should return
+     */
+    public function hasTraitClass(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
         return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => in_array($class, $v->getTraitNames()));
     }
 
-    public function implementsClass(string $class, ?string $namespace = null, $options = FindType::ALL)
+    /**
+     * Whether class implements an interface
+     *
+     * @param class-string $class     Class name
+     * @param string|null  $namespace Namespace
+     * @param int          $options   Whether which classes should return
+     */
+    public function implementsClass(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
         return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => $v->implementsInterface($class));
     }
 
-    public function isSubClassOf(string $class, ?string $namespace = null, $options = FindType::ALL)
+    /**
+     * Whether class is subclass of this class
+     *
+     * @param class-string $class     Class name
+     * @param string|null  $namespace Namespace
+     * @param int          $options   Whether which classes should return
+     */
+    public function isSubClassOf(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
         return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => $v->isSubclassOf($class));
     }
 
-    public function isAOf(string $class, ?string $namespace = null, $options = FindType::ALL)
+    /**
+     * Whether class is of this class or has this class as one of its parents
+     *
+     * @param class-string $class     Class name
+     * @param string|null  $namespace Namespace
+     * @param int          $options   Whether which classes should return
+     */
+    public function isAOf(string $class, ?string $namespace = null, int $options = FindType::ALL): array
     {
         return $this->getClasses($namespace, $options, fn(ReflectionClass $v) => is_a($v->getName(), $class, true));
     }
 
+    /**
+     * Returns just interface classes
+     *
+     * @param string $namespace Namespace
+     */
     public function isInterface(string $namespace): array
     {
         return $this->getClasses($namespace, FindType::INTERFACE);
     }
 
+    /**
+     * Returns just enum classes
+     *
+     * @param string $namespace Namespace
+     */
     public function isEnum(string $namespace): array
     {
         return $this->getClasses($namespace, FindType::ENUM);
     }
 
+    /**
+     * Returns just trait classes
+     *
+     * @param string $namespace Namespace
+     */
     public function isTrait(string $namespace): array
     {
         return $this->getClasses($namespace, FindType::TRAIT);
     }
 
+    /**
+     * Returns just abstract classes
+     *
+     * @param string $namespace Namespace
+     */
     public function isAbstract(string $namespace): array
     {
         return $this->getClasses($namespace, FindType::ABSTRACT);
     }
 
+    /**
+     * Returns just final classes
+     *
+     * @param string $namespace Namespace
+     */
     public function isFinalClasses(string $namespace): array
     {
         return $this->getClasses($namespace, FindType::FINAL);

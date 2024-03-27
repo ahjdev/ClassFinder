@@ -50,7 +50,14 @@ final class ClassFinder
         $this->namespaces = require_once ($autoload_psr4);
     }
 
-    public function getClasses(?string $namespace = null, $options = FindType::ALL, callable|Closure $cb = null): array
+    /**
+     * Get classes from namespace
+     *
+     * @param string|null           $namespace Namespace
+     * @param int                   $options   Whether which classes should return
+     * @param callable|Closure|null $cb        Extra Callback to filter
+     */
+    public function getClasses(?string $namespace = null, int $options = FindType::ALL, callable|Closure $cb = null): array
     {
         $cb ??= fn (ReflectionClass $v) => true;
         $uncheck   = empty($namespace);
@@ -67,7 +74,14 @@ final class ClassFinder
         return array_values($classes);
     }
 
-    private function filterClass($class, $options, callable|Closure $cb): ReflectionClass|false
+    /**
+     * Filter the class
+     *
+     * @param class-string     $class
+     * @param int              $options
+     * @param callable|Closure $cb
+     */
+    private function filterClass(string $class, int $options, callable|Closure $cb): ReflectionClass|false
     {
         if (enum_exists($class) && ($options & FindType::ENUM))
         {
@@ -95,7 +109,7 @@ final class ClassFinder
         return false;
     }
 
-    private function getClassesInternal(RecursiveDirectoryIterator|string $path, string $mainpath, string $namespace, $options, callable|Closure $cb): array
+    private function getClassesInternal(RecursiveDirectoryIterator|string $path, string $mainpath, string $namespace, int $options, callable|Closure $cb): array
     {
         $classes = [];
         if (is_string($path)) {
