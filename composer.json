@@ -1,6 +1,6 @@
 {
     "name": "ahjdev/class-finder",
-    "description": "An async php telegram bot library for create super fast telegram bots!",
+    "description": "Find all classes from composer",
     "keywords": [
         "php",
         "class",
