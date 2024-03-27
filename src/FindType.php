@@ -16,12 +16,12 @@ namespace AhjDev\ClassFinder;
 
 enum FindType
 {
-    const INTERFACE = 4;
-    const TRAIT     = 8;
-    const ENUM      = 16;
-    const FINAL     = 32;
-    const ABSTRACT  = 64;
-    const READONLY  = 128;
-    const CLASSES   = self::FINAL | self::ABSTRACT | self::READONLY;
+    const INTERFACE = 1;
+    const TRAIT     = 2;
+    const ENUM      = 4;
+    const FINAL     = 8;
+    const ABSTRACT  = 16;
+    const SIMPLE_CLASS  = 32;
+    const CLASSES   = self::FINAL | self::ABSTRACT | self::SIMPLE_CLASS;
     const ALL       = self::INTERFACE | self::TRAIT | self::ENUM | self::CLASSES;
 }

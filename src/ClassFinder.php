@@ -14,16 +14,23 @@
 
 namespace AhjDev\ClassFinder;
 
+use Closure;
 use ReflectionEnum;
 use ReflectionClass;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 
-class ClassFinder
+/**
+ * @mixin ClassFinder
+ */
+final class ClassFinder
 {
+    use EasyFinder;
+
     public const FileSystemFlags = FilesystemIterator::CURRENT_AS_SELF | FilesystemIterator::SKIP_DOTS;
 
-    public array $namespaces = [];
+    private array $namespaces = [];
+    private array $files = [];
 
     /**
      * @param ?string $path Dirname of the vendor folder
@@ -32,70 +39,77 @@ class ClassFinder
     {
         if (!interface_exists('Reflector'))
             throw new Exception('Could not find Reflector interface');
-
-        $path          = rtrim($path ?? __DIR__, '/');
-        $vendor        = $path   . '/vendor';
-        $autoload      = $vendor . '/autoload.php';
-        $autoload_psr4 = $vendor . '/composer/autoload_psr4.php';
+        $path           = rtrim($path ?? __DIR__ . '/..', '/');
+        $vendor         = $path   . '/vendor';
+        $autoload       = $vendor . '/autoload.php';
+        $autoload_psr4  = $vendor . '/composer/autoload_psr4.php';
+        $autoload_files = $vendor . '/composer/autoload_files.php';
         require_once $autoload;
-        $this->namespaces = include $autoload_psr4;
+        if (file_exists($autoload_files))
+            $this->files  = array_map('realpath', array_values(require_once $autoload_files));
+        $this->namespaces = require_once ($autoload_psr4);
     }
 
-    
-    private function filterClass($class, $options = FindType::ALL, ?string $subclass = null): ReflectionClass|false
+    public function getClasses(?string $namespace = null, $options = FindType::ALL, callable|Closure $cb = null): array
     {
-        if (!empty($subclas) && !is_subclass_of($class, $subclass))
-            return false;
+        $cb ??= fn (ReflectionClass $v) => true;
+        $uncheck   = empty($namespace);
+        $classes = [];
+        $namespace .= str_ends_with($namespace ?? '', '\\') ? '' : '\\';
+        foreach ($this->namespaces as $k => $v) {
+            if ($uncheck || str_starts_with($namespace, $k) || str_starts_with($k, $namespace)) {
+                $main    = implode('', $v);
+                $path    = $main . '/' . substr($namespace, strlen($k));
+                $name    = rtrim($k, '\\');
+                $classes += $this->getClassesInternal($path, $main, $name, $options, $cb);
+            }
+        }
+        return array_values($classes);
+    }
 
+    private function filterClass($class, $options, callable|Closure $cb): ReflectionClass|false
+    {
         if (enum_exists($class) && ($options & FindType::ENUM))
-            return new ReflectionEnum($class);
+        {
+            $refClass = new ReflectionEnum($class);
+            return $cb($refClass) ? $refClass : false;
+        }
 
         elseif (trait_exists($class) && ($options & FindType::TRAIT) || interface_exists($class) && ($options & FindType::INTERFACE))
-            return new ReflectionClass($class);
+        {
+            $refClass = new ReflectionClass($class);
+            return $cb($refClass) ? $refClass : false;
+        }
 
-        elseif (class_exists($class) && ($options & FindType::CLASSES)) {
+        elseif (class_exists($class) && ($options & FindType::CLASSES))
+        {
             $refClass = new ReflectionClass($class);
             return match (true)
             {
-                $refClass->isEnum()           => ($options & FindType::ENUM) ? $refClass : false,
-                $options & FindType::FINAL    => $refClass->isFinal()    ? $refClass : false,
-                $options & FindType::ABSTRACT => $refClass->isAbstract() ? $refClass : false,
-                $options & FindType::READONLY => $refClass->isReadOnly() ? $refClass : false,
-                default => $refClass,
+                $refClass->isEnum()     => ($options & FindType::ENUM)         && $cb($refClass) ? $refClass : false,
+                $refClass->isFinal()    => ($options & FindType::FINAL)        && $cb($refClass) ? $refClass : false,
+                $refClass->isAbstract() => ($options & FindType::ABSTRACT)     && $cb($refClass) ? $refClass : false,
+                default                 => ($options & FindType::SIMPLE_CLASS) && $cb($refClass) ? $refClass : false
             };
-            // isInstance isInstantiable isSubclassOf getInterfaces getParentClass getTraitNames implementsInterface
         }
         return false;
     }
 
-    public function getClasses(string $namespace, $options = FindType::ALL, ?string $subclass = null): array
-    {
-        $namespace .= str_ends_with($namespace, '\\') ? '' : '\\';
-        foreach ($this->namespaces as $k => $v) {
-            if (str_starts_with($namespace, $k)) {
-                $main    = implode('', $v);
-                $path    = $main . '/' . substr($namespace, strlen($k));
-                $name    = rtrim($k, '\\');
-                $classes = $this->getClassesInternal($path, $main, $name, $options, $subclass);
-                return array_values($classes);
-            }
-        }
-        return [];
-    }
-
-    private function getClassesInternal(RecursiveDirectoryIterator|string $path, string $mainpath, string $namespace, $options = FindType::ALL, ?string $subclass = null): array
+    private function getClassesInternal(RecursiveDirectoryIterator|string $path, string $mainpath, string $namespace, $options, callable|Closure $cb): array
     {
         $classes = [];
-        if (is_string($path))
-            $path = new RecursiveDirectoryIterator($path, self::FileSystemFlags);
+        if (is_string($path)) {
+            $path = realpath($path);
+            $path = $path ? new RecursiveDirectoryIterator($path, self::FileSystemFlags) : [];
+        }
     
         foreach ($path as $k => $v) {
             if ($v->isDir())
-                $classes += $this->getClassesInternal($v->getChildren(), $mainpath, $namespace, $options);
+                $classes += $this->getClassesInternal($v->getChildren(), $mainpath, $namespace, $options, $cb);
     
-            elseif ($v->isFile()) {
+            elseif ($v->isFile() && str_ends_with($v->getRealPath(), '.php')) {
                 $class = $this->createClassName($v, $mainpath, $namespace);
-                if ($this->filterClass($class, $options, $subclass) !== false)
+                if ($this->filterClass($class, $options, $cb) !== false)
                     $classes[$k] = $class;
             }
         }
@@ -104,38 +118,10 @@ class ClassFinder
 
     private function createClassName(RecursiveDirectoryIterator $file, string $main, string $namespace): string
     {
-        $namespace .= substr($file->getPathname(), strlen($main));
-        $class = rtrim($namespace, '.php');
-        return str_replace('/', '\\', $class);
-    }
-
-    public function getSubClasses(string $namespace, string $subclass, $options = FindType::ALL): array
-    {
-        return $this->getClasses($namespace, $options, $subclass);
-    }
-
-    public function getInterfaces(string $namespace): array
-    {
-        return $this->getClasses($namespace, FindType::INTERFACE);
-    }
-
-    public function getEnums(string $namespace): array
-    {
-        return $this->getClasses($namespace, FindType::ENUM);
-    }
-
-    public function getTraits(string $namespace): array
-    {
-        return $this->getClasses($namespace, FindType::TRAIT);
-    }
-
-    public function getAbstractClasses(string $namespace): array
-    {
-        return $this->getClasses($namespace, FindType::ABSTRACT);
-    }
-
-    public function getFinalClasses(string $namespace): array
-    {
-        return $this->getClasses($namespace, FindType::FINAL);
+        if (in_array($file->getRealPath(), $this->files))
+            return '';
+        $namespace .= substr($file->getPath(), strlen($main));
+        $namespace .= '\\' . $file->getBasename('.php');
+        return str_replace('/', '\\', $namespace);
     }
 }
