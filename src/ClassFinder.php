@@ -59,7 +59,7 @@ final class ClassFinder
      * @param int                   $options   Whether which classes should return
      * @param callable|Closure|null $cb        Extra Callback to filter
      */
-    public function getClasses(?string $namespace = null, int $options = FindType::ALL, callable|Closure $cb = null): array
+    public function getClasses(?string $namespace = null, int $options = FindType::ALL, callable|Closure|null $cb = null): array
     {
         $cb ??= fn (ReflectionClass $v) => true;
         $uncheck   = empty($namespace);
