@@ -67,9 +67,9 @@ final class ClassFinder
         $namespace .= \str_ends_with($namespace ?? '', '\\') ? '' : '\\';
         foreach ($this->namespaces as $k => $v) {
             if ($uncheck || \str_starts_with($namespace, $k) || \str_starts_with($k, $namespace)) {
-                $main    = \implode('', $v);
-                $path    = $main . '/' . \substr($namespace, \strlen($k));
-                $name    = \rtrim($k, '\\');
+                $main = \implode('', $v);
+                $path = $main . '/' . \str_replace('\\', DIRECTORY_SEPARATOR, \substr($namespace, \strlen($k)));
+                $name = \rtrim($k, '\\');
                 $classes += $this->getClassesInternal($path, $main, $name, $options, $cb);
             }
         }
